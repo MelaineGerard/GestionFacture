@@ -1,6 +1,7 @@
 package fr.melaine.gerard.gestionfacture.managers;
 
 import fr.melaine.gerard.gestionfacture.entities.*;
+import fr.melaine.gerard.gestionfacture.enumerations.QuoteType;
 import fr.melaine.gerard.gestionfacture.generator.PdfGenerator;
 import fr.melaine.gerard.gestionfacture.repositories.*;
 
@@ -32,7 +33,9 @@ public class MenuManager {
         System.out.println("8. Voir le profil entreprise");
         System.out.println("9. Générer un PDF de facture");
         System.out.println("10. Générer un PDF de devis");
-        System.out.println("11. Quitter");
+        System.out.println("11. Créer un produit");
+        System.out.println("12. Voir les produits");
+        System.out.println("13. Quitter");
     }
 
     public void handleMainMenu(int choice) {
@@ -44,13 +47,13 @@ public class MenuManager {
                 showClients();
                 break;
             case 3:
-                createInvoice();
+                createQuote(QuoteType.INVOICE);
                 break;
             case 4:
                 showInvoices();
                 break;
             case 5:
-                createQuote();
+                createQuote(QuoteType.QUOTE);
                 break;
             case 6:
                 showQuotes();
@@ -61,7 +64,6 @@ public class MenuManager {
             case 8:
                 showEnterprise();
                 break;
-
             case 9:
                 generateInvoicePdf();
                 break;
@@ -69,8 +71,43 @@ public class MenuManager {
                 generateQuotePdf();
                 break;
             case 11:
+                createProduct();
+                break;
+            case 12:
+                showProducts();
+                break;
+            case 13:
                 System.exit(0);
                 break;
+        }
+    }
+
+    private void createProduct() {
+        System.out.println("Nom du produit :");
+        String name = askForString();
+
+        System.out.println("Prix du produit :");
+        float price = askForFloat();
+
+        ProductRepository.getInstance().createProduct(name, price);
+
+        System.out.println("Produit créé");
+    }
+
+    private float askForFloat() {
+        float number = -1;
+        while (number < 0) {
+            number = parseFloat(scanner.nextLine());
+        }
+
+        return number;
+    }
+
+    private float parseFloat(String input) {
+        try {
+            return Float.parseFloat(input);
+        } catch (NumberFormatException e) {
+            return -1;
         }
     }
 
@@ -86,7 +123,7 @@ public class MenuManager {
 
         Invoice invoice = InvoiceRepository.getInstance().getInvoices().get(invoiceNumber - 1);
 
-        PdfGenerator.getInstance().generate(invoice);
+        PdfGenerator.getInstance().generate(invoice, QuoteType.INVOICE);
     }
 
     private void generateQuotePdf() {
@@ -101,7 +138,7 @@ public class MenuManager {
 
         Quote quote = QuoteRepository.getInstance().getQuotes().get(quoteNumber - 1);
 
-        PdfGenerator.getInstance().generate(quote);
+        PdfGenerator.getInstance().generate(quote, QuoteType.QUOTE);
         
     }
 
@@ -141,11 +178,11 @@ public class MenuManager {
 
         int count = 1;
         for (Quote quote : quotes) {
-            System.out.println( count + ". " + quote.enterprise().getName() + " - " + quote.client().fullname());
+            System.out.println( count + ". " + quote.getEnterprise().getName() + " - " + quote.getClient().fullname());
         }
     }
 
-    private void createQuote() {
+    private void createQuote(QuoteType quoteType) {
         if (ClientRepository.getInstance().getClients().isEmpty()) {
             System.out.println("Aucun client n'a été créé");
             return;
@@ -168,9 +205,13 @@ public class MenuManager {
         Product product = ProductRepository.getInstance().getProducts().get(productNumber - 1);
         Enterprise enterprise = EnterpriseRepository.getInstance().getEnterprise();
 
-        QuoteRepository.getInstance().createQuote(client, enterprise, List.of(product));
-
-        System.out.println("Devis créée");
+        if (quoteType == QuoteType.QUOTE) {
+            QuoteRepository.getInstance().createQuote(client, enterprise, List.of(product));
+            System.out.println("Devis créée");
+        } else {
+            InvoiceRepository.getInstance().createInvoice(client, enterprise, List.of(product));
+            System.out.println("Facture créée");
+        }
     }
 
     private void showInvoices() {
@@ -185,37 +226,9 @@ public class MenuManager {
 
         int count = 1;
         for (Invoice invoice : invoices) {
-            System.out.println(count + ". " + invoice.enterprise().getName() + " - " + invoice.client().fullname());
+            System.out.println(count + ". " + invoice.getEnterprise().getName() + " - " + invoice.getClient().fullname());
             count++;
         }
-    }
-
-    private void createInvoice() {
-        if (ClientRepository.getInstance().getClients().isEmpty()) {
-            System.out.println("Aucun client n'a été créé");
-            return;
-        }
-
-        if (ProductRepository.getInstance().getProducts().isEmpty()) {
-            System.out.println("Aucun produit n'a été créé");
-            return;
-        }
-
-        showClients();
-        System.out.println("Numéro du client :");
-        int clientNumber = askForKey(ClientRepository.getInstance().getClients().size());
-
-        showProducts();
-        System.out.println("Numéro du produit :");
-        int productNumber = askForKey(ProductRepository.getInstance().getProducts().size());
-
-        Client client = ClientRepository.getInstance().getClients().get(clientNumber - 1);
-        Product product = ProductRepository.getInstance().getProducts().get(productNumber - 1);
-        Enterprise enterprise = EnterpriseRepository.getInstance().getEnterprise();
-
-        InvoiceRepository.getInstance().createInvoice(client, enterprise, List.of(product));
-
-        System.out.println("Facture créée");
     }
 
     private void showProducts() {
@@ -282,7 +295,7 @@ public class MenuManager {
     public int askForChoice() {
         int choice = -1;
         Scanner scanner = new Scanner(System.in);
-        while (choice < 1 || choice > 11) {
+        while (choice < 1 || choice > 13) {
             choice = parseInt(scanner.nextLine());
         }
 
