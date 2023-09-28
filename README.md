@@ -11,14 +11,19 @@
 - Affichage des clients
 - Affichage du profil entreprise
 
+## Prérequis
+
+- Java 17
+- Maven
+
 ## Installation
 
 - Cloner le projet
-- Compiler le projet avec la commande `./gradlew clean shadowJar`
+- Compiler le projet avec la commande `./mvn clean package`
 
 ## Utilisation
 
-- Lancer le projet avec la commande `java -jar build/libs/GestionFacture-1.0-SNAPSHOT-all.jar`
+- Lancer le projet avec la commande `java -jar target/GestionFacture.jar`
 
 ## Auteur
 

@@ -2,7 +2,11 @@ package fr.melaine.gerard.gestionfacture.entities;
 
 import java.util.List;
 
-public record Invoice(Client client, Enterprise enterprise, List<Product> products) {
+public class Invoice extends Quote {
+    public Invoice(Client client, Enterprise enterprise, List<Product> products) {
+        super(client, enterprise, products);
+    }
+
     @Override
     public String toString() {
         return """
@@ -11,9 +15,9 @@ public record Invoice(Client client, Enterprise enterprise, List<Product> produc
                 Entreprise : %s
                 Produits : %s
                 """.formatted(
-                        client.fullname(),
-                enterprise.getName(),
-                products
+                        getClient().fullname(),
+                getEnterprise().getName(),
+                getProducts()
         );
     }
 }

@@ -5,9 +5,9 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import fr.melaine.gerard.gestionfacture.entities.Invoice;
 import fr.melaine.gerard.gestionfacture.entities.Product;
 import fr.melaine.gerard.gestionfacture.entities.Quote;
+import fr.melaine.gerard.gestionfacture.enumerations.QuoteType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
-// TODO: Refacto de la classe pour éviter la duplication de code (Modifier les entité Quote et Invoice pour qu'elles héritent d'une classe abstraite)
 public class PdfGenerator {
     private final String path = new File("./pdf").getAbsolutePath() + File.separator;
     private static PdfGenerator instance;
@@ -28,58 +27,58 @@ public class PdfGenerator {
         return instance;
     }
 
-    public void generate(Quote quote) {
-        String filename = "devis_" + quote.client().fullname() + "_" + quote.enterprise().getName() + "_" +  UUID.randomUUID() + ".pdf";
+    public void generate(Quote quote, QuoteType quoteType) {
+        String filename = "devis_" + quote.getClient().fullname() + "_" + quote.getEnterprise().getName() + "_" +  UUID.randomUUID() + ".pdf";
         String fullPath = path + filename;
 
         try {
             Document document = new Document();
             PdfWriter.getInstance(document, new FileOutputStream(fullPath));
             document.open();
-            document.addTitle("Devis");
-            document.addSubject("Devis du client %s" .formatted(quote.client().fullname()));
-            document.addAuthor(quote.enterprise().getName());
-            document.addCreator(quote.enterprise().getName());
+            document.addTitle(quoteType == QuoteType.QUOTE ? "Devis" : "Facture");
+            document.addSubject(quoteType == QuoteType.QUOTE ? "Devis du client %s".formatted(quote.getClient().fullname()) : "Facture du client %s".formatted(quote.getClient().fullname()));
+            document.addAuthor(quote.getEnterprise().getName());
+            document.addCreator(quote.getEnterprise().getName());
 
-            generateContent(document, quote);
+            generateContent(document, quote, quoteType);
 
             document.close();
-            System.out.println("Devis exporté en PDF - Nom du fichier : " + filename);
+            System.out.printf("%s exporté en PDF - Nom du fichier : %s%n", (quoteType == QuoteType.QUOTE ? "Devis" : "Facture"), filename);
         } catch (IOException | DocumentException e) {
             System.out.println("Erreur lors de la génération du PDF : " + e.getMessage());
         }
     }
 
-    private void generateContent(Document document, Quote quote) {
+    private void generateContent(Document document, Quote quote, QuoteType quoteType) {
         float total = 0;
-        Paragraph enterpriseName = new Paragraph(quote.enterprise().getName());
+        Paragraph enterpriseName = new Paragraph(quote.getEnterprise().getName());
         enterpriseName.setAlignment(Paragraph.ALIGN_LEFT);
 
-        Paragraph enterpriseMailingAddress = new Paragraph(quote.enterprise().getMailingAddress());
+        Paragraph enterpriseMailingAddress = new Paragraph(quote.getEnterprise().getMailingAddress());
         enterpriseMailingAddress.setAlignment(Paragraph.ALIGN_LEFT);
 
-        Paragraph enterpriseEmailAddress = new Paragraph(quote.enterprise().getEmailAddress());
+        Paragraph enterpriseEmailAddress = new Paragraph(quote.getEnterprise().getEmailAddress());
         enterpriseEmailAddress.setAlignment(Paragraph.ALIGN_LEFT);
 
-        Paragraph enterprisePhone = new Paragraph(quote.enterprise().getPhone());
+        Paragraph enterprisePhone = new Paragraph(quote.getEnterprise().getPhone());
         enterprisePhone.setAlignment(Paragraph.ALIGN_LEFT);
 
-        Paragraph clientName = new Paragraph(quote.client().fullname());
+        Paragraph clientName = new Paragraph(quote.getClient().fullname());
         clientName.setAlignment(Paragraph.ALIGN_RIGHT);
 
-        Paragraph clientMailingAddress = new Paragraph(quote.client().mailingAddress());
+        Paragraph clientMailingAddress = new Paragraph(quote.getClient().mailingAddress());
         clientMailingAddress.setAlignment(Paragraph.ALIGN_RIGHT);
 
-        Paragraph clientEmailAddress = new Paragraph(quote.client().emailAddress());
+        Paragraph clientEmailAddress = new Paragraph(quote.getClient().emailAddress());
         clientEmailAddress.setAlignment(Paragraph.ALIGN_RIGHT);
 
-        Paragraph clientPhone = new Paragraph(quote.client().phone());
+        Paragraph clientPhone = new Paragraph(quote.getClient().phone());
         clientPhone.setAlignment(Paragraph.ALIGN_RIGHT);
 
         Paragraph date = new Paragraph(new Date().toString());
         date.setAlignment(Paragraph.ALIGN_CENTER);
 
-        Paragraph invoiceP = new Paragraph("Devis");
+        Paragraph invoiceP = new Paragraph(quoteType == QuoteType.QUOTE ? "Devis" : "Facture");
         invoiceP.setAlignment(Paragraph.ALIGN_CENTER);
 
         PdfPTable table = new PdfPTable(3);
@@ -87,7 +86,7 @@ public class PdfGenerator {
         table.addCell("Quantité");
         table.addCell("Prix");
 
-        for (Product product : quote.products()) {
+        for (Product product : quote.getProducts()) {
             table.addCell(product.name());
             table.addCell(String.valueOf(1));
             table.addCell(product.price() + "€");
@@ -115,98 +114,6 @@ public class PdfGenerator {
             document.add(totalParagraph);
         } catch (DocumentException e) {
             System.out.println("Erreur lors de la génération du contenu du PDF : " + e.getMessage());
-        }
-    }
-
-
-    private void generateContent(Document document, Invoice invoice) {
-        float total = 0;
-        Paragraph enterpriseName = new Paragraph(invoice.enterprise().getName());
-        enterpriseName.setAlignment(Paragraph.ALIGN_LEFT);
-
-        Paragraph enterpriseMailingAddress = new Paragraph(invoice.enterprise().getMailingAddress());
-        enterpriseMailingAddress.setAlignment(Paragraph.ALIGN_LEFT);
-
-        Paragraph enterpriseEmailAddress = new Paragraph(invoice.enterprise().getEmailAddress());
-        enterpriseEmailAddress.setAlignment(Paragraph.ALIGN_LEFT);
-
-        Paragraph enterprisePhone = new Paragraph(invoice.enterprise().getPhone());
-        enterprisePhone.setAlignment(Paragraph.ALIGN_LEFT);
-
-        Paragraph clientName = new Paragraph(invoice.client().fullname());
-        clientName.setAlignment(Paragraph.ALIGN_RIGHT);
-
-        Paragraph clientMailingAddress = new Paragraph(invoice.client().mailingAddress());
-        clientMailingAddress.setAlignment(Paragraph.ALIGN_RIGHT);
-
-        Paragraph clientEmailAddress = new Paragraph(invoice.client().emailAddress());
-        clientEmailAddress.setAlignment(Paragraph.ALIGN_RIGHT);
-
-        Paragraph clientPhone = new Paragraph(invoice.client().phone());
-        clientPhone.setAlignment(Paragraph.ALIGN_RIGHT);
-
-        Paragraph date = new Paragraph(new Date().toString());
-        date.setAlignment(Paragraph.ALIGN_CENTER);
-
-        Paragraph invoiceP = new Paragraph("Facture");
-        invoiceP.setAlignment(Paragraph.ALIGN_CENTER);
-
-        PdfPTable table = new PdfPTable(3);
-        table.addCell("Produit");
-        table.addCell("Quantité");
-        table.addCell("Prix");
-
-        for (Product product : invoice.products()) {
-            table.addCell(product.name());
-            table.addCell(String.valueOf(1));
-            table.addCell(product.price() + "€");
-
-            total += product.price();
-        }
-
-        Paragraph totalParagraph = new Paragraph("Total : " + total + "€");
-        totalParagraph.setAlignment(Paragraph.ALIGN_RIGHT);
-
-        try {
-            document.add(enterpriseName);
-            document.add(enterpriseMailingAddress);
-            document.add(enterpriseEmailAddress);
-            document.add(enterprisePhone);
-            document.add(clientName);
-            document.add(clientMailingAddress);
-            document.add(clientEmailAddress);
-            document.add(clientPhone);
-            document.add(invoiceP);
-            document.add(date);
-            document.add(new Paragraph(" "));
-            document.add(new Paragraph(" "));
-            document.add(table);
-            document.add(totalParagraph);
-        } catch (DocumentException e) {
-            System.out.println("Erreur lors de la génération du contenu du PDF : " + e.getMessage());
-        }
-    }
-
-
-    public void generate(Invoice invoice) {
-        String filename = "facture_" + invoice.client().fullname() + "_" + invoice.enterprise().getName() + "_" +  UUID.randomUUID() + ".pdf";
-        String fullPath = path + filename;
-
-        try {
-            Document document = new Document();
-            PdfWriter.getInstance(document, new FileOutputStream(fullPath));
-            document.open();
-            document.addTitle("Facture");
-            document.addSubject("Facture du client %s" .formatted(invoice.client().fullname()));
-            document.addAuthor(invoice.enterprise().getName());
-            document.addCreator(invoice.enterprise().getName());
-
-            generateContent(document, invoice);
-
-            document.close();
-            System.out.println("Facture exporté en PDF - Nom du fichier : " + filename);
-        } catch (IOException | DocumentException e) {
-            System.out.println("Erreur lors de la génération du PDF : " + e.getMessage());
         }
     }
 }
