@@ -11,8 +11,8 @@ public record Invoice(Client client, Enterprise enterprise, List<Product> produc
                 Entreprise : %s
                 Produits : %s
                 """.formatted(
-                        client,
-                enterprise,
+                        client.fullname(),
+                enterprise.getName(),
                 products
         );
     }

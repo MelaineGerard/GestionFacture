@@ -1,8 +1,7 @@
 package fr.melaine.gerard.gestionfacture.repositories;
 
 
-import fr.melaine.gerard.gestionfacture.entities.Invoice;
-import fr.melaine.gerard.gestionfacture.entities.Quote;
+import fr.melaine.gerard.gestionfacture.entities.*;
 
 import java.util.List;
 
@@ -18,5 +17,10 @@ public class QuoteRepository extends AbstractRepository {
 
     public List<Quote> getQuotes() {
         return getDatabase().getQuotes();
+    }
+
+    public void createQuote(Client client, Enterprise enterprise, List<Product> products) {
+        Quote quote = new Quote(client, enterprise, products);
+        getDatabase().addQuote(quote);
     }
 }

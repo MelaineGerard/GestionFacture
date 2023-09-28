@@ -16,4 +16,13 @@ public class EnterpriseRepository extends AbstractRepository {
     public Enterprise getEnterprise() {
         return getDatabase().getEnterprise();
     }
+
+    public void editEnterprise(String name, String mailingAddress, String emailAddress, String phoneNumber) {
+        Enterprise enterprise = getEnterprise();
+
+        enterprise.setName(name);
+        enterprise.setMailingAddress(mailingAddress);
+        enterprise.setEmailAddress(emailAddress);
+        enterprise.setPhone(phoneNumber);
+    }
 }

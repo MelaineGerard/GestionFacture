@@ -12,7 +12,7 @@ public class Database {
     private final List<Quote> quotes;
     private final List<Invoice> invoices;
     private final List<Product> products;
-    private Enterprise enterprise;
+    private final Enterprise enterprise;
 
     public static Database getInstance() {
         if (instance == null) {
@@ -45,12 +45,21 @@ public class Database {
     public List<Invoice> getInvoices() {
         return invoices;
     }
+    public void addInvoice(Invoice invoice) {
+        invoices.add(invoice);
+    }
 
     public List<Product> getProducts() {
         return products;
     }
+    public void addProduct(Product product) {
+        products.add(product);
+    }
 
     public List<Quote> getQuotes() {
         return quotes;
+    }
+    public void addQuote(Quote quote) {
+        quotes.add(quote);
     }
 }

@@ -1,15 +1,13 @@
 package fr.melaine.gerard.gestionfacture.managers;
 
-import fr.melaine.gerard.gestionfacture.entities.Client;
-import fr.melaine.gerard.gestionfacture.entities.Enterprise;
-import fr.melaine.gerard.gestionfacture.entities.Invoice;
-import fr.melaine.gerard.gestionfacture.entities.Quote;
+import fr.melaine.gerard.gestionfacture.entities.*;
 import fr.melaine.gerard.gestionfacture.repositories.*;
 
 import java.util.List;
 import java.util.Scanner;
 
 public class MenuManager {
+    private final Scanner scanner = new Scanner(System.in);
 
     public static MenuManager menuManager;
 
@@ -73,7 +71,21 @@ public class MenuManager {
     }
 
     private void editEnterprise() {
+        System.out.println("Nom de l'entreprise :");
+        String name = askForString();
 
+        System.out.println("Adresse postale :");
+        String mailingAddress = askForString();
+
+        System.out.println("Adresse email :");
+        String emailAddress = askForString();
+
+        System.out.println("Numéro de téléphone :");
+        String phoneNumber = askForString();
+
+        EnterpriseRepository.getInstance().editEnterprise(name, mailingAddress, emailAddress, phoneNumber);
+
+        System.out.println("Profil entreprise modifié");
     }
 
     private void showQuotes() {
@@ -92,7 +104,31 @@ public class MenuManager {
     }
 
     private void createQuote() {
+        if (ClientRepository.getInstance().getClients().isEmpty()) {
+            System.out.println("Aucun client n'a été créé");
+            return;
+        }
 
+        if (ProductRepository.getInstance().getProducts().isEmpty()) {
+            System.out.println("Aucun produit n'a été créé");
+            return;
+        }
+
+        showClients();
+        System.out.println("Numéro du client :");
+        int clientNumber = askForKey(ClientRepository.getInstance().getClients().size());
+
+        showProducts();
+        System.out.println("Numéro du produit :");
+        int productNumber = askForKey(ProductRepository.getInstance().getProducts().size());
+
+        Client client = ClientRepository.getInstance().getClients().get(clientNumber - 1);
+        Product product = ProductRepository.getInstance().getProducts().get(productNumber - 1);
+        Enterprise enterprise = EnterpriseRepository.getInstance().getEnterprise();
+
+        QuoteRepository.getInstance().createQuote(client, enterprise, List.of(product));
+
+        System.out.println("Devis créée");
     }
 
     private void showInvoices() {
@@ -111,7 +147,55 @@ public class MenuManager {
     }
 
     private void createInvoice() {
+        if (ClientRepository.getInstance().getClients().isEmpty()) {
+            System.out.println("Aucun client n'a été créé");
+            return;
+        }
 
+        if (ProductRepository.getInstance().getProducts().isEmpty()) {
+            System.out.println("Aucun produit n'a été créé");
+            return;
+        }
+
+        showClients();
+        System.out.println("Numéro du client :");
+        int clientNumber = askForKey(ClientRepository.getInstance().getClients().size());
+
+        showProducts();
+        System.out.println("Numéro du produit :");
+        int productNumber = askForKey(ProductRepository.getInstance().getProducts().size());
+
+        Client client = ClientRepository.getInstance().getClients().get(clientNumber - 1);
+        Product product = ProductRepository.getInstance().getProducts().get(productNumber - 1);
+        Enterprise enterprise = EnterpriseRepository.getInstance().getEnterprise();
+
+        InvoiceRepository.getInstance().createInvoice(client, enterprise, List.of(product));
+
+        System.out.println("Facture créée");
+    }
+
+    private void showProducts() {
+        List<Product> products = ProductRepository.getInstance().getProducts();
+
+        if (products.isEmpty()) {
+            System.out.println("Aucun produit n'a été créé");
+            return;
+        }
+
+        System.out.println("Liste des produits :");
+
+        for (Product product : products) {
+            System.out.println(product);
+        }
+    }
+
+    private int askForKey(int size) {
+        int key = 0;
+        while (key < 1 || key > size) {
+            key = parseInt(scanner.nextLine());
+        }
+
+        return key;
     }
 
     private void showClients() {
@@ -130,7 +214,21 @@ public class MenuManager {
     }
 
     private void createClient() {
+        System.out.println("Nom complet :");
+        String fullname = askForString();
 
+        System.out.println("Adresse postale :");
+        String mailingAddress = askForString();
+
+        System.out.println("Adresse email :");
+        String emailAddress = askForString();
+
+        System.out.println("Numéro de téléphone :");
+        String phoneNumber = askForString();
+
+        ClientRepository.getInstance().createClient(fullname, mailingAddress, emailAddress, phoneNumber);
+
+        System.out.println("Client créé");
     }
 
     public int askForChoice() {
@@ -149,5 +247,14 @@ public class MenuManager {
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    private String askForString() {
+        String input = "";
+        while (input.isEmpty()) {
+            input = scanner.nextLine();
+        }
+
+        return input;
     }
 }
