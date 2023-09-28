@@ -1,6 +1,7 @@
 package fr.melaine.gerard.gestionfacture.managers;
 
 import fr.melaine.gerard.gestionfacture.entities.*;
+import fr.melaine.gerard.gestionfacture.generator.PdfGenerator;
 import fr.melaine.gerard.gestionfacture.repositories.*;
 
 import java.util.List;
@@ -29,7 +30,9 @@ public class MenuManager {
         System.out.println("6. Voir les devis");
         System.out.println("7. Modifier le profil entreprise");
         System.out.println("8. Voir le profil entreprise");
-        System.out.println("9. Quitter");
+        System.out.println("9. Générer un PDF de facture");
+        System.out.println("10. Générer un PDF de devis");
+        System.out.println("11. Quitter");
     }
 
     public void handleMainMenu(int choice) {
@@ -58,10 +61,48 @@ public class MenuManager {
             case 8:
                 showEnterprise();
                 break;
+
             case 9:
+                generateInvoicePdf();
+                break;
+            case 10:
+                generateQuotePdf();
+                break;
+            case 11:
                 System.exit(0);
                 break;
         }
+    }
+
+    private void generateInvoicePdf() {
+        if (InvoiceRepository.getInstance().getInvoices().isEmpty()) {
+            System.out.println("Aucune facture n'a été créée");
+            return;
+        }
+
+        showInvoices();
+        System.out.println("Numéro de la facture :");
+        int invoiceNumber = askForKey(InvoiceRepository.getInstance().getInvoices().size());
+
+        Invoice invoice = InvoiceRepository.getInstance().getInvoices().get(invoiceNumber - 1);
+
+        PdfGenerator.getInstance().generate(invoice);
+    }
+
+    private void generateQuotePdf() {
+        if (QuoteRepository.getInstance().getQuotes().isEmpty()) {
+            System.out.println("Aucun devis n'a été créée");
+            return;
+        }
+
+        showInvoices();
+        System.out.println("Numéro du devis :");
+        int quoteNumber = askForKey(QuoteRepository.getInstance().getQuotes().size());
+
+        Quote quote = QuoteRepository.getInstance().getQuotes().get(quoteNumber - 1);
+
+        PdfGenerator.getInstance().generate(quote);
+        
     }
 
     private void showEnterprise() {
@@ -98,8 +139,9 @@ public class MenuManager {
 
         System.out.println("Liste des devis :");
 
+        int count = 1;
         for (Quote quote : quotes) {
-            System.out.println(quote);
+            System.out.println( count + ". " + quote.enterprise().getName() + " - " + quote.client().fullname());
         }
     }
 
@@ -141,8 +183,10 @@ public class MenuManager {
 
         System.out.println("Liste des factures :");
 
+        int count = 1;
         for (Invoice invoice : invoices) {
-            System.out.println(invoice);
+            System.out.println(count + ". " + invoice.enterprise().getName() + " - " + invoice.client().fullname());
+            count++;
         }
     }
 
@@ -184,8 +228,10 @@ public class MenuManager {
 
         System.out.println("Liste des produits :");
 
+        int count = 1;
         for (Product product : products) {
-            System.out.println(product);
+            System.out.println(count + ". " + product);
+            count++;
         }
     }
 
@@ -208,8 +254,10 @@ public class MenuManager {
 
         System.out.println("Liste des clients :");
 
+        int count = 1;
         for (Client client : clients) {
-            System.out.println(client);
+            System.out.println(count + ". " + client.fullname() + " - " + client.emailAddress());
+            count++;
         }
     }
 
@@ -234,7 +282,7 @@ public class MenuManager {
     public int askForChoice() {
         int choice = -1;
         Scanner scanner = new Scanner(System.in);
-        while (choice < 1 || choice > 9) {
+        while (choice < 1 || choice > 11) {
             choice = parseInt(scanner.nextLine());
         }
 
